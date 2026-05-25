@@ -4,13 +4,50 @@
 
 import express from "express";
 import "dotenv/config";
+import fs from "fs";
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
+
+/* ---------- ที่เก็บข้อมูลกลาง (ไฟล์ data.json) ----------
+   เก็บข้อมูลทุกอย่างไว้บนเซิร์ฟเวอร์ ทุกคนที่ต่อเข้าเซิร์ฟเวอร์นี้
+   จะอ่าน/เขียนข้อมูลชุดเดียวกัน (การบ้าน/ตารางสอน/ประกาศ) */
+const DATA_FILE = "./data.json";
+function readStore() { try { return JSON.parse(fs.readFileSync(DATA_FILE, "utf8")); } catch (e) { return {}; } }
+function writeStore(obj) { try { fs.writeFileSync(DATA_FILE, JSON.stringify(obj)); } catch (e) { console.error("เขียน data.json ไม่สำเร็จ:", e); } }
+
+app.get("/api/store", (req, res) => {
+  const key = String(req.query.key || "");
+  const store = readStore();
+  res.json({ key, value: key in store ? store[key] : null });
+});
+
+app.post("/api/store", (req, res) => {
+  const { key, value } = req.body || {};
+  if (!key) return res.status(400).json({ error: "missing key" });
+  const store = readStore();
+  store[key] = value;
+  writeStore(store);
+  res.json({ key, value });
+});
+
+app.delete("/api/store", (req, res) => {
+  const key = String(req.query.key || "");
+  const store = readStore();
+  delete store[key];
+  writeStore(store);
+  res.json({ key, deleted: true });
+});
+
+app.get("/api/store/list", (req, res) => {
+  const prefix = String(req.query.prefix || "");
+  const store = readStore();
+  res.json({ keys: Object.keys(store).filter((k) => k.startsWith(prefix)) });
+});
 
 const KEY = process.env.GEMINI_API_KEY;
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
-const PORT = process.env.PORT || 5173
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const PORT = process.env.PORT || 8787;
 
 app.post("/api/chat", async (req, res) => {
   if (!KEY) {
@@ -57,6 +94,7 @@ app.post("/api/chat", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ AI proxy พร้อมใช้งานที่ http://localhost:${PORT}`);
-  if (!KEY) console.warn("⚠️  ยังไม่พบ GEMINI_API_KEY — สร้างไฟล์ .env แล้วใส่คีย์ก่อนนะครับ");
+  console.log(`✅ เซิร์ฟเวอร์พร้อมใช้งานที่ http://localhost:${PORT}`);
+  console.log(`   - ที่เก็บข้อมูลกลาง: /api/store (เก็บลงไฟล์ data.json)`);
+  console.log(`   - พี่เลี้ยง AI: ปิดปรับปรุงชั่วคราว (หน้าเว็บแสดงสถานะนี้อยู่)`);
 });

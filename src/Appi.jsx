@@ -351,11 +351,7 @@ export default function App() {
           <Assistant hw={hw} sch={sch} />
         )}
 
-        <div className="foot">
-  📚 สมุดการบ้าน | การบ้านและตารางสอนส่วนตัว |
-  📢 ประกาศกลางสำหรับทุกคน |
-  Web by Wa © 2026 | Ver.1.0
-</div>
+        <div className="foot">สมุดการบ้าน · การบ้าน/ตารางสอนเก็บเฉพาะของคุณ · ประกาศใช้ร่วมกันทุกคน</div>
       </div>
     </div>
   );

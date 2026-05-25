@@ -1,13 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// ส่งต่อคำขอ /api ทั้งหมดไปยัง backend (server.mjs) ที่พอร์ต 8787
-// ทำให้หน้าเว็บเรียก "/api/chat" ได้ตรง ๆ โดยไม่ติดปัญหา CORS
+// บน Vercel ไม่ต้องใช้ proxy (โฮสต์รวมหน้าเว็บ + /api ให้เอง)
+// proxy ด้านล่างมีไว้เผื่อรันในเครื่องด้วย `vercel dev` (พอร์ต 3000)
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
-      "/api": "http://localhost:5174",
-    },
+    proxy: { "/api": "http://localhost:3000" },
   },
 });
